@@ -22,6 +22,7 @@ _start:
 
 
 printNumber:
+    # this function is not done
     mov rdi, 50
 
     xor r8, r8
