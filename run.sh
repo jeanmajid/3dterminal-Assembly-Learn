@@ -1,6 +1,17 @@
-as main.s
-gcc -o a a.out -nostdlib -static
-./a
+buildOPath="build/o"
 
-rm a
-rm a.out
+if [ -e "$buildOPath" ]
+then
+    rm "$buildOPath" -r
+fi
+
+mkdir -p build
+mkdir -p build/o
+mkdir -p build/o/utils
+mkdir -p build/bin
+
+as src/main.s -o build/o/main.o
+as src/utils/print.s -o build/o/utils/print.o
+
+ld build/o/utils/print.o build/o/main.o -o build/bin/3dterminal
+./build/bin/3dterminal
