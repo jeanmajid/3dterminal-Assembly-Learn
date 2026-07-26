@@ -11,7 +11,7 @@ _start:
     # mov eax, word [winsize]
     # mov ebx, word [winsize + 2]
 
-    mov rdi, 123
+    mov rdi, 5
     call printNumber
 
     mov rax, 60 # exit

@@ -3,21 +3,6 @@
 
 # rdi should have the number to print
 printNumber:
-    cmp rdi, 9
-    ja printNumberBigger9
-
-    add rdi, '0'
-    mov byte ptr [printBuffer], dil
-    mov byte ptr [printBuffer + 1], '\n'
-
-    mov rax, 1 # syscall write
-    mov rdi, 1 # terminal out
-    mov rdx, 2 # amount of bytes to write
-    lea rsi, [printBuffer] # load print buffer
-    syscall
-    ret
-
-printNumberBigger9:
     mov r8, 1
     lea r10, [printBuffer + PRINT_BUFFER_SIZE]
 
