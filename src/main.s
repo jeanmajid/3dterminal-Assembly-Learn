@@ -11,18 +11,35 @@ _start:
     cmp rax, 0
     jl error
 
-    movzx rax, word ptr [winsize] # height    
+    movzx rax, word ptr [winsize] # height
     movzx rbx, word ptr [winsize + 2] # width
     # rax = height * width (theres also imul/idiv which is nicer, but idk what the convention really is and what I should use)
     mul rbx
 
-    push rax
+    # r8 = size
+    mov r8, rax
 
     mov rsi, rax
     call getMemory
     # rax now holds pointer to memory
 
-    push rax
+    # r9 = *buffer
+    mov r9, rax
+
+    xor r10, r10
+loop: 
+    cmp r10, r8
+    je endLoop
+
+    mov byte ptr [r9 + r10], '#'
+
+    inc r10
+    jmp loop
+endLoop:
+
+    mov rdx, r8
+    mov rsi, r9
+    call printScreen
 
     mov rdi, 0
     jmp exit
@@ -45,17 +62,20 @@ exit:
     mov rax, 60 # exit
     syscall
 
+# rdx screen size
+# rsi screen buffer
 printScreen:
     mov rax, 1
     mov rdi, 1
-    mov rdx, SCREEN_BUFFER_SIZE
-    lea rsi, [screenBuffer]
     syscall
     ret
 
 # rsi takes amount of bytes
 # address of memory returned in rax
 getMemory:
+    push r8
+    push r9
+
     mov rax, 9 # mmap syscall
     mov rdi, 0 # address
     mov rdx, 3 # protection, this is read write
@@ -66,6 +86,9 @@ getMemory:
 
     cmp rax, 0
     jl error
+
+    pop r9
+    pop r8
 
     ret
 
@@ -83,10 +106,6 @@ freeMemory:
 
 winsize:
     .space 8
-
-.equ SCREEN_BUFFER_SIZE, 128
-screenBuffer:
-    .space SCREEN_BUFFER_SIZE
 
 # data is like initialised data included in the program file
 .section .data

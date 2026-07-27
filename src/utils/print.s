@@ -3,6 +3,9 @@
 
 # rdi should have the number to print
 printNumber:
+    push r8
+    push r10
+
     mov r8, 1
     lea r10, [printBuffer + PRINT_BUFFER_SIZE]
 
@@ -40,6 +43,9 @@ endLoop:
 
     lea rsi, [r10] # load print buffer
     syscall
+
+    pop r10
+    pop r8
     ret
 
 .section .bss
