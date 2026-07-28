@@ -102,7 +102,7 @@ enableRawMode:
     mov dword [termios + 12], eax
 
     mov rax, SYSCALL_IOCTL
-    mov rdi, 1 # stdout
+    mov rdi, FD_OUT
     mov rsi, 0x5402 # tcsets
     lea rdx, [termios]
     syscall
@@ -122,7 +122,7 @@ getMemory:
     mov rdi, 0 # address
     mov rdx, 3 # protection, this is read write
     mov r10, 0x22 # flags, private and anonymous
-    mov r8, -1 # file discriptor
+    mov r8, -1 # file descriptor
     mov r9, 0 # offset
     syscall
 
