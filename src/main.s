@@ -1,17 +1,24 @@
 .global _start
 .intel_syntax noprefix
 
+.equ SYSCALL_WRITE, 1
+.equ SYSCALL_IOCTL, 16
+.equ SYSCALL_MMAP, 9
+.equ SYSCALL_MUNMAP, 11
+
+.equ FD_OUT, 1
+
 _start:
     call enableRawMode
 
-    mov rax, 1 # syscall write
-    mov rdi, 1
+    mov rax, SYSCALL_WRITE
+    mov rdi, FD_OUT
     lea rsi, [cursorHide]
     mov rdx, offset cursorHideLen
     syscall
 
-    mov eax, 16 # sycsall ioctl terminal screen info
-    mov rdi, 1
+    mov eax, SYSCALL_IOCTL # terminal screen info
+    mov rdi, FD_OUT
     mov rsi, 0x5413
     lea rdx, [winsize]
     syscall
@@ -45,14 +52,14 @@ loop:
     inc r10
     jmp loop
 endLoop:
-    mov rax, 1 # syscall write
-    mov rdi, 1
+    mov rax, SYSCALL_WRITE
+    mov rdi, FD_OUT
     lea rsi, [cursorHome]
     mov rdx, offset cursorHomeLen
     syscall
 
-    mov rax, 1 # syscall write
-    mov rdi, 1
+    mov rax, SYSCALL_WRITE
+    mov rdi, FD_OUT
     mov rsi, r9
     mov rdx, r8
     syscall
@@ -62,8 +69,8 @@ endLoop:
     mov rdi, 0
     jmp exit
 error:
-    mov rax, 1
-    mov rdi, 1
+    mov rax, SYSCALL_WRITE
+    mov rdi, FD_OUT
     lea rsi, [errorMessage]
     mov rdx, offset errorMessageLen
     syscall
@@ -81,8 +88,8 @@ exit:
     syscall
 
 enableRawMode:
-    mov rax, 16 # syscall ioctl
-    mov rdi, 1 # stdout
+    mov rax, SYSCALL_IOCTL
+    mov rdi, FD_OUT
     mov rsi, 0x5401 # tcgets
     lea rdx, [termios]
     syscall
@@ -94,7 +101,7 @@ enableRawMode:
     and eax, ~(2 | 8) # icanon and echo bits
     mov dword [termios + 12], eax
 
-    mov rax, 16 # ioctl
+    mov rax, SYSCALL_IOCTL
     mov rdi, 1 # stdout
     mov rsi, 0x5402 # tcsets
     lea rdx, [termios]
@@ -111,7 +118,7 @@ getMemory:
     push r8
     push r9
 
-    mov rax, 9 # mmap syscall
+    mov rax, SYSCALL_MMAP
     mov rdi, 0 # address
     mov rdx, 3 # protection, this is read write
     mov r10, 0x22 # flags, private and anonymous
@@ -130,7 +137,7 @@ getMemory:
 # rdi pointer to memory
 # rsi size
 freeMemory:
-    mov rax, 11 # munmap syscall
+    mov rax, SYSCALL_MUNMAP
     syscall
 
     ret
