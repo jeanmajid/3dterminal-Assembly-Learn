@@ -2,7 +2,15 @@
 .intel_syntax noprefix
 
 _start:
-    mov eax, 16 # ioctl, terminal screen info
+    call enableRawMode
+
+    mov rax, 1 # syscall write
+    mov rdi, 1
+    lea rsi, [cursorHide]
+    mov rdx, offset cursorHideLen
+    syscall
+
+    mov eax, 16 # sycsall ioctl terminal screen info
     mov rdi, 1
     mov rsi, 0x5413
     lea rdx, [winsize]
@@ -26,6 +34,7 @@ _start:
     # r9 = *buffer
     mov r9, rax
 
+restartLoop:
     xor r10, r10
 loop: 
     cmp r10, r8
@@ -36,18 +45,27 @@ loop:
     inc r10
     jmp loop
 endLoop:
+    mov rax, 1 # syscall write
+    mov rdi, 1
+    lea rsi, [cursorHome]
+    mov rdx, offset cursorHomeLen
+    syscall
 
-    mov rdx, r8
+    mov rax, 1 # syscall write
+    mov rdi, 1
     mov rsi, r9
-    call printScreen
+    mov rdx, r8
+    syscall
+
+    jmp restartLoop
 
     mov rdi, 0
     jmp exit
 error:
     mov rax, 1
     mov rdi, 1
-    mov rdx, errorMessageLen
     lea rsi, [errorMessage]
+    mov rdx, offset errorMessageLen
     syscall
 
     mov rdi, 1
@@ -62,12 +80,29 @@ exit:
     mov rax, 60 # exit
     syscall
 
-# rdx screen size
-# rsi screen buffer
-printScreen:
-    mov rax, 1
-    mov rdi, 1
+enableRawMode:
+    mov rax, 16 # syscall ioctl
+    mov rdi, 1 # stdout
+    mov rsi, 0x5401 # tcgets
+    lea rdx, [termios]
     syscall
+
+    cmp rax, 0
+    jl error
+
+    mov eax, dword [termios + 12] # flags
+    and eax, ~(2 | 8) # icanon and echo bits
+    mov dword [termios + 12], eax
+
+    mov rax, 16 # ioctl
+    mov rdi, 1 # stdout
+    mov rsi, 0x5402 # tcsets
+    lea rdx, [termios]
+    syscall
+
+    cmp rax, 0
+    jl error
+
     ret
 
 # rsi takes amount of bytes
@@ -107,9 +142,20 @@ freeMemory:
 winsize:
     .space 8
 
+termios:
+    .space 36
+
 # data is like initialised data included in the program file
 .section .data
 
 errorMessage: .ascii "Error"
 .equ errorMessageLen, . - errorMessage
-    
+
+clearScreen: .ascii "\x1b[2J"
+.equ clearScreenLen, . - clearScreen
+
+cursorHome: .ascii "\x1b[H"
+.equ cursorHomeLen, . - cursorHome
+
+cursorHide: .ascii "\x1b[?25l"
+.equ cursorHideLen, . - cursorHide
