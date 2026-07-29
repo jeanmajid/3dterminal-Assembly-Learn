@@ -87,6 +87,10 @@ exit:
     mov rax, 60 # exit
     syscall
 
+# rdi pointer to vector in memory
+screenProject:
+    ret
+
 enableRawMode:
     mov rax, SYSCALL_IOCTL
     mov rdi, FD_OUT
@@ -152,6 +156,9 @@ winsize:
 termios:
     .space 36
 
+vectorArray:
+    .space (3 * 4) * 100
+
 # data is like initialised data included in the program file
 .section .data
 
@@ -166,3 +173,23 @@ cursorHome: .ascii "\x1b[H"
 
 cursorHide: .ascii "\x1b[?25l"
 .equ cursorHideLen, . - cursorHide
+
+# start loop
+#    call getTime
+#    mov r12, rax
+# end loop
+#    call getTime
+#    # frame time
+#    sub rax, r12
+#
+#    cmp rax, 0
+#    je restartLoop
+#
+#    mov rbx, rax
+#    mov rax, 1000000000
+#    xor rdx, rdx
+#    div rbx
+#
+#    # rax = fps
+#    mov rdi, rax
+#    call printNumber
