@@ -88,15 +88,38 @@ exit:
     syscall
 
 # rdi pointer to vector in memory
+# return
+# x = edi
+# y = eax
 screenProject:
-    movss xmm5, [vectorArray] # x
-    movss xmm6, [vectorArray + 4] # y
-    movss xmm7, [vectorArray + 8] # z
+    movss xmm7, [rdi + 8] # z
 
-    movss xmm0, xmm5
-    divss xmm0, xmm7
-    divss xmm0, 2
-    mulss xmm0, word ptr [winsize + 2] # this is wrong
+    movss xmm0, [rdi] # x
+    movss xmm2, xmm7
+    addss xmm2, [one]
+
+    divss xmm0, xmm2
+    mulss xmm0, [half]
+
+    # first we gotta convert the int into a float
+    movzx eax, word ptr [winsize + 2]
+    cvtsi2ss xmm1, eax
+    mulss xmm0, xmm1
+
+    cvttss2si edi, xmm0
+
+    movss xmm2, [one]
+    subss xmm2, [rdi + 4] # y
+
+    divss xmm2, xmm7
+    mulss xmm2, [half]
+
+    # first we gotta convert the int into a float
+    movzx eax, word ptr [winsize]
+    cvtsi2ss xmm1, eax
+    mulss xmm2, xmm1
+
+    cvttss2si eax, xmm0
 
     ret
 
@@ -170,6 +193,15 @@ vectorArray:
 
 # data is like initialised data included in the program file
 .section .data
+
+# read only data
+.section .rodata
+
+half:
+    .float 0.5
+
+one:
+    .float 1
 
 errorMessage: .ascii "Error"
 .equ errorMessageLen, . - errorMessage

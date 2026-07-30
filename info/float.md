@@ -12,6 +12,8 @@
 | **Max Value** | `maxss` | `maxsd` |
 | **Compare** | `comiss` / `ucomiss` | `comisd` / `ucomisd` |
 
+divss can't divide by immediate value, using mulss is better 2 -> 0.5
+
 ### Conversion Instructions (Integer <-> Float)
 
 | Conversion Direction | 32-bit Integer <-> Float | 64-bit Integer <-> Double |
