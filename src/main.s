@@ -89,6 +89,15 @@ exit:
 
 # rdi pointer to vector in memory
 screenProject:
+    movss xmm5, [vectorArray] # x
+    movss xmm6, [vectorArray + 4] # y
+    movss xmm7, [vectorArray + 8] # z
+
+    movss xmm0, xmm5
+    divss xmm0, xmm7
+    divss xmm0, 2
+    mulss xmm0, word ptr [winsize + 2] # this is wrong
+
     ret
 
 enableRawMode:
