@@ -41,6 +41,19 @@ _start:
     # r9 = *buffer
     mov r9, rax
 
+    mov eax, dword ptr [negativeOne]
+    mov [vectorArray], eax
+    mov [vectorArray + 4], eax
+
+    mov eax, dword ptr [one]
+    mov [vectorArray + 8], eax
+
+
+    mov eax, dword ptr [one]
+    mov [vectorArray + 12], eax
+    mov [vectorArray + 16], eax
+    mov [vectorArray + 20], eax
+
 restartLoop:
     xor rcx, rcx
 loop: 
@@ -58,19 +71,9 @@ endLoop:
     mov rdx, offset cursorHomeLen
     syscall
 
-    # just testing
-    mov eax, dword ptr [negativeOne]
-    mov [vectorArray], eax
-    mov [vectorArray + 4], eax
-
-    mov eax, dword ptr [one]
-    mov [vectorArray + 8], eax
-
-
-    mov eax, dword ptr [one]
-    mov [vectorArray + 12], eax
-    mov [vectorArray + 16], eax
-    mov [vectorArray + 20], eax
+    movss xmm0, [vectorArray + 12]
+    subss xmm0, [smallNumber]
+    movss [vectorArray + 12], xmm0
 
     lea rdi, [vectorArray]
     lea rsi, [vectorArray + 12]
@@ -332,6 +335,9 @@ vectorArray:
 
 negativeOne:
     .float -1
+
+smallNumber:
+    .float 0.0005
 
 zero:
     .float 0
