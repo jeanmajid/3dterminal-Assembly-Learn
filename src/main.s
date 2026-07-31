@@ -26,8 +26,11 @@ _start:
     cmp rax, 0
     jl error
 
-    movzx rax, word ptr [winsize] # height
-    movzx rbx, word ptr [winsize + 2] # width
+    movzx r11, word ptr [winsize] # height
+    movzx r12, word ptr [winsize + 2] # width
+
+    mov rax, r11
+    mov rbx, r12
     # rax = height * width (theres also imul/idiv which is nicer, but idk what the convention really is and what I should use)
     mul rbx
 
@@ -42,14 +45,14 @@ _start:
     mov r9, rax
 
 restartLoop:
-    xor r10, r10
+    xor rcx, rcx
 loop: 
-    cmp r10, r8
+    cmp rcx, r8
     je endLoop
 
-    mov byte ptr [r9 + r10], '#'
+    mov byte ptr [r9 + rcx], ' '
 
-    inc r10
+    inc rcx
     jmp loop
 endLoop:
     mov rax, SYSCALL_WRITE
@@ -57,6 +60,17 @@ endLoop:
     lea rsi, [cursorHome]
     mov rdx, offset cursorHomeLen
     syscall
+
+
+    mov eax, dword ptr [zero]
+    mov [vectorArray], eax
+    mov [vectorArray + 4], eax
+
+    mov eax, dword ptr [one]
+    mov [vectorArray + 8], eax
+
+    lea rdi, [vectorArray]
+    call setPixel
 
     mov rax, SYSCALL_WRITE
     mov rdi, FD_OUT
@@ -88,17 +102,38 @@ exit:
     syscall
 
 # rdi pointer to vector in memory
+setPixel:
+    call screenProject
+
+    # (y * width) + x
+    mov edi, eax
+    imul edi, r12d
+    add edi, esi
+
+    # edi = index into screen
+
+    mov byte ptr [r9 + rdi], '#'
+    
+    ret
+
+# rdi pointer to vector 1 in memory
+# rsi pointer to vector 2 in memory
+line:
+    
+    ret
+
+# rdi pointer to vector in memory
 # return
-# x = edi
+# x = esi
 # y = eax
 screenProject:
+    # x = Math.floor(((x / z + 1) / 2) * this.width)
+
     movss xmm7, [rdi + 8] # z
-
     movss xmm0, [rdi] # x
-    movss xmm2, xmm7
-    addss xmm2, [one]
-
-    divss xmm0, xmm2
+    
+    divss xmm0, xmm7
+    addss xmm0, [one]
     mulss xmm0, [half]
 
     # first we gotta convert the int into a float
@@ -106,20 +141,23 @@ screenProject:
     cvtsi2ss xmm1, eax
     mulss xmm0, xmm1
 
-    cvttss2si edi, xmm0
+    cvttss2si esi, xmm0
 
-    movss xmm2, [one]
-    subss xmm2, [rdi + 4] # y
+    # y = Math.floor(((1 - y / z) / 2) * this.height)
 
+    movss xmm2, [rdi + 4] # y
     divss xmm2, xmm7
-    mulss xmm2, [half]
+
+    movss xmm3, [one]
+    subss xmm3, xmm2
+    mulss xmm3, [half]
 
     # first we gotta convert the int into a float
     movzx eax, word ptr [winsize]
     cvtsi2ss xmm1, eax
-    mulss xmm2, xmm1
+    mulss xmm3, xmm1
 
-    cvttss2si eax, xmm0
+    cvttss2si eax, xmm3
 
     ret
 
@@ -196,6 +234,9 @@ vectorArray:
 
 # read only data
 .section .rodata
+
+zero:
+    .float 0
 
 half:
     .float 0.5
