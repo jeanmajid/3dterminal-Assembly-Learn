@@ -55,16 +55,11 @@ _start:
     mov [vectorArray + 20], eax
 
 restartLoop:
-    xor rcx, rcx
-loop: 
-    cmp rcx, r8
-    je endLoop
+    lea rdi, [r9]
+    mov rcx, r8
+    mov al, ' '
+    rep stosb
 
-    mov byte ptr [r9 + rcx], ' '
-
-    inc rcx
-    jmp loop
-endLoop:
     mov rax, SYSCALL_WRITE
     mov rdi, FD_OUT
     lea rsi, [cursorHome]
