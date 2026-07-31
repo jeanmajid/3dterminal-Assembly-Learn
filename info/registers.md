@@ -28,6 +28,7 @@
 | `RDI`  | `EDI`  | `DI`   | `DIL`   |
 | `RBP`  | `EBP`  | `BP`   | `BPL`   |
 | `RSP`  | `ESP`  | `SP`   | `SPL`   |
+| `R8`   | `R8D`  | `R8W`  | `R8B`   |
 
 ---
 
